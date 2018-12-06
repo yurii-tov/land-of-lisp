@@ -47,12 +47,13 @@
 
 (defun show-player ()
   (format t
-    "You are a valiant knight wint a health of ~A, an agility of ~A, and a strength of ~A~%"
+    "~%You are a valiant knight wint a health of ~A, an agility of ~A, and a strength of ~A~%"
     *player-health*
     *player-agility*
     *player-strength*))
 
 (defun player-attack ()
+  (fresh-line)
   (format t "Attack style: [s]tab [d]ouble [r]oundhouse:")
   (case (read)
     (s (monster-hit 
@@ -143,3 +144,75 @@
   (format t "A fierce ~A" (type-of m)))
 
 (defmethod monster-attack (m))
+
+; orc
+
+(defstruct (orc (:include monster))
+  (club-level (randval 8)))
+
+(push #'make-orc *monster-builders*)
+
+(defmethod monster-show ((m orc))
+  (format t "A wicked orc with a level ~A club" 
+    (orc-club-level m)))  
+
+(defmethod monster-attack ((m orc))
+  (let ((x (randval (orc-club-level m))))
+    (decf *player-health* x)
+    (format t "An orc swings his club at you and knocks off ~A of your health points " x)))
+
+; hydra
+
+(defstruct (hydra (:include monster)))
+
+(push #'make-hydra *monster-builders*)
+
+(defmethod monster-show ((m hydra))
+  (format t "A malicious hydra with ~A heads"
+    (monster-health m)))
+
+(defmethod monster-hit ((m hydra) x)
+  (decf (monster-health m) x)
+  (if (monster-dead m)
+    (format t "The corpse of fully decapitated and decapacitated hydra falls to the floor! ")
+    (format t "You lop off ~A of the hydra's heads! " x)))
+
+(defmethod monster-attack ((m hydra))
+  (let ((x (randval (ash (monster-health m) -1))))
+    (incf (monster-health m))
+    (decf *player-health* x)
+    (format t
+      "A hydra attacks you with ~A of its heads! It also grows back one more head! "
+      x)))
+
+; slime mold
+
+(defstruct (slime-mold (:include monster))
+  (slimeness (randval 5))
+  (agility-taken 0))
+
+(push #'make-slime-mold *monster-builders*)
+
+(defmethod monster-show ((m slime-mold))
+  (format t "A slime mold with a slimeness of ~A"
+    (slime-mold-slimeness m)))
+
+(defmethod monster-attack ((m slime-mold))
+  (let ((x (randval (slime-mold-slimeness m))))
+    ; bind player
+    (decf *player-agility* x)
+    (incf (slime-mold-agility-taken m) x)
+    (format t "A slime mold wraps around your legs and decreases your agility by ~A!" x)
+    ; hit player
+    (when (zerop (random 2))
+      (decf *player-health*)
+      (format t " It also squirts in your face, taking away a health point! "))))
+
+(defmethod monster-hit :after ((m slime-mold) x)
+  (when (monster-dead m)
+    (let ((a (slime-mold-agility-taken m)))
+      (when (not (zerop a))
+        (incf *player-agility* a)
+        (setf (slime-mold-agility-taken m) 0)
+        (format t
+          "Slime mold release your legs ")))))
