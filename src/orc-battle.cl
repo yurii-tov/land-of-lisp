@@ -15,9 +15,9 @@
   (init-player)
   (game-loop)
   (when (player-dead)
-    (princ "You have been killed. Game Over."))
+    (format t "You have been killed. Game Over.~%"))
   (when (monsters-dead)
-    (princ "Congratulations! You have vanquished all of your foes.")))
+    (format t "Congratulations! You have vanquished all of your foes.~%")))
 
 (defun game-loop ()
   (unless (or (player-dead) (monsters-dead))
@@ -185,11 +185,26 @@
       "A hydra attacks you with ~A of its heads! It also grows back one more head! "
       x)))
 
+; monsters which steal agility
+
+(defstruct (steals-agility (:include monster))
+  (taken 0))
+
+(defmethod steal-agility ((m steals-agility) x)
+  (decf *player-agility* x)
+  (incf (steals-agility-taken m) x))
+
+(defmethod monster-hit :after ((m steals-agility) x)
+  (when (monster-dead m)
+    (let ((a (steals-agility-taken m)))
+      (when (not (zerop a))
+        (incf *player-agility* a)
+        (setf (steals-agility-taken m) 0)))))
+
 ; slime mold
 
-(defstruct (slime-mold (:include monster))
-  (slimeness (randval 5))
-  (agility-taken 0))
+(defstruct (slime-mold (:include steals-agility))
+  (slimeness (randval 5)))
 
 (push #'make-slime-mold *monster-builders*)
 
@@ -200,19 +215,30 @@
 (defmethod monster-attack ((m slime-mold))
   (let ((x (randval (slime-mold-slimeness m))))
     ; bind player
-    (decf *player-agility* x)
-    (incf (slime-mold-agility-taken m) x)
+    (steal-agility m x)
     (format t "A slime mold wraps around your legs and decreases your agility by ~A!" x)
     ; hit player
     (when (zerop (random 2))
       (decf *player-health*)
       (format t " It also squirts in your face, taking away a health point! "))))
 
-(defmethod monster-hit :after ((m slime-mold) x)
-  (when (monster-dead m)
-    (let ((a (slime-mold-agility-taken m)))
-      (when (not (zerop a))
-        (incf *player-agility* a)
-        (setf (slime-mold-agility-taken m) 0)
-        (format t
-          "Slime mold release your legs ")))))
+; cunning brigand
+
+(defstruct (brigand (:include steals-agility)))
+
+(push #'make-brigand *monster-builders*)
+
+(defmethod monster-attack ((m brigand))
+  (let ((x (max *player-health* 
+                *player-agility* 
+                *player-strength*)))
+    (cond 
+      ((= x *player-health*)
+       (princ "A brigand hits you with his slingshot, taking off 2 health points! ")
+       (decf *player-health* 2))
+      ((= x *player-agility*)
+       (princ "a brigand catches your leg with his whip, taking off 2 agility points! ")
+       (steal-agility m 2))
+      ((= x *player-strength*)
+       (princ "A briand cuts your arm with his whip, taking off 2 strength points! ")
+       (decf *player-strength* 2)))))
