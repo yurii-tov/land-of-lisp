@@ -127,11 +127,11 @@
       list)))
 
 (deftopic format
-  "% means newline" 
-  (format t "hello with 1 newline~%")
+  "~% means unconditional newline" 
+  (format t "hello with~%~%~%3 newlines")
 
-  "2% means 2 newlines" 
-  (format t "hello with two newlines~2%")
+  "~& means 'conditional newline (it prints newline depends on cursor position)'"
+  (format t "only~&~&~&one newline")
 
   "S stands for 'standard'. It formats any objects in machine-readable view (like prin1)"
   (format t 
@@ -141,7 +141,16 @@
   "A stands for 'aestetic'. It formats any objects in human-readable view (like princ)"
   (format t 
     "this is a list: ~A, and this is a string: ~A. This is a symbol: ~A" 
-    '(a b c d) "a string" 'dog-tag))
+    '(a b c d) "a string" 'dog-tag)
+
+  "~{~} means 'for each item'. This construct using allow format each item in collection"
+  (format t "~{[~a] ~}" '(dog cat tiger rabbit penguin))
+
+  "~<~> stands for justification block. With this, one can create nice-aligned table"
+  (loop repeat 10 do 
+    (format t "~{~10:@<~A~>~}~%"
+      (loop repeat 3 collect 
+        (nth (random 5) '(dog cat tiger rabbit penguin))))))
 
 (deftopic printing
   "PRIN1 function prints data in machine-readable format (i.e. its output is available for the Reader)"
