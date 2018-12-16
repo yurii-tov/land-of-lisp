@@ -1,3 +1,5 @@
+(defparameter *day* 0)
+
 (defparameter *width* 100)
 
 (defparameter *height* 30)
@@ -100,11 +102,13 @@
           (eat animal)
           (reproduce animal))
     *animals*)
-  (add-plants))
+  (add-plants)
+  (incf *day*))
 
 ; ui
 
 (defun draw-world ()
+  (format t "~&day: ~A~%" *day*)
   (loop for y below *height*
     do (progn (fresh-line)
               (princ "|")
