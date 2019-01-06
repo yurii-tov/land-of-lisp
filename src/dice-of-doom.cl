@@ -74,17 +74,23 @@
       (loop for n below *board-hexnum*
         collect n))))
 
-(defun neighbours (pos)
-  (let ((up (- pos *board-size*))
-        (down (+ pos *board-size*)))
-    (remove-if-not
-      (lambda (p) (and (>= p 0) (< p *board-hexnum*)))
-      (append 
-        (list up down)
-        (unless (zerop (mod pos *board-size*))
-          (list (1- up) (1- pos)))
-        (unless (zerop (mod (1+ pos) *board-size*))
-          (list (1+ pos) (1+ down)))))))
+(labels 
+  ((old-neighbours (pos)
+     (let ((up (- pos *board-size*))
+           (down (+ pos *board-size*)))
+       (remove-if-not
+         (lambda (p) (and (>= p 0) (< p *board-hexnum*)))
+         (append 
+           (list up down)
+           (unless (zerop (mod pos *board-size*))
+             (list (1- up) (1- pos)))
+           (unless (zerop (mod (1+ pos) *board-size*))
+             (list (1+ pos) (1+ down))))))))
+  (let ((previous (make-hash-table)))
+    (defun neighbours (pos)
+      (or (gethash pos previous)
+        (setf (gethash pos previous)
+          (old-neighbours pos))))))
 
 (defun board-attack (board player src dst dice)
   (board-array
