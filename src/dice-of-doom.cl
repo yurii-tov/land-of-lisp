@@ -2,7 +2,7 @@
 
 (defparameter *max-dice* 3)
 
-(defparameter *board-size* 2)
+(defparameter *board-size* 3)
 
 (defparameter *board-hexnum* (* *board-size* *board-size*))
 
@@ -29,16 +29,21 @@
               (player-letter (first hex))
               (second hex)))))
 
-(defun game-tree (board player spare-dice first-move)
-  (list 
-    player
-    board
-    (add-passing-move 
-      board
-      player
-      spare-dice
-      first-move
-      (attacking-moves board player spare-dice))))
+(labels 
+  ((old-game-tree (board player spare-dice first-move)
+     (list 
+       player
+       board
+       (add-passing-move 
+         board
+         player
+         spare-dice
+         first-move
+         (attacking-moves board player spare-dice)))))
+  (let ((previous (make-hash-table :test #'equalp)))
+    (defun game-tree (&rest rest)
+      (or (gethash rest previous)
+        (setf (gethash rest previous) (apply #'old-game-tree rest))))))
 
 (defun add-passing-move (board player spare-dice first-move moves)
   (if first-move
@@ -161,15 +166,24 @@
       (format t "The game is a tie between ~a" (mapcar #'player-letter w))
       (format t "The winner is ~a" (player-letter (car w))))))
 
-(defun rate-position (tree player)
-  (let ((moves (caddr tree)))
-    (if moves
-      (apply (if (eq (car tree) player)
-               #'max #'min)
-        (get-ratings tree player))
-      (let ((w (winners (cadr tree))))
-        (if (member player w)
-          (/ 1 (length w)) 0)))))
+(labels
+  ((old-rate-position (tree player)
+     (let ((moves (caddr tree)))
+       (if moves
+         (apply (if (eq (car tree) player)
+                  #'max #'min)
+           (get-ratings tree player))
+         (let ((w (winners (cadr tree))))
+           (if (member player w)
+             (/ 1 (length w)) 0))))))
+  (let ((previous (make-hash-table)))
+    (defun rate-position (tree player)
+      (let ((tab (gethash player previous)))
+        (unless tab
+          (setf tab (setf (gethash player previous) (make-hash-table))))
+        (or (gethash tree tab)
+            (setf (gethash tree tab) 
+              (old-rate-position tree player)))))))
 
 (defun get-ratings (tree player)
   (mapcar (lambda (move) 
@@ -190,3 +204,6 @@
              (fresh-line)
              (print-action action)
              (play-vs-computer tree-1)))))
+
+(defun new-game-vs-computer ()
+  (play-vs-computer (game-tree (gen-board) (random 2) 0 t)))
