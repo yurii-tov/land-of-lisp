@@ -35,14 +35,15 @@
            (failures (runner suite nil 0 0))
            (count-failed (length failures))
            (count-total (length suite)))
-      `(if ',failures
-         (progn
-           (format t "tests failed!~%")
-             (loop for (test expected actual) in ',failures
-               do (format t "expected: ~a => ~a, actual: ~a~%"
-                    test expected actual))
-             (format t "total failed tests: ~a/~a~%" 
-               ,count-failed 
-               ,count-total
-               ',failures))
-         (format t "all tests passed! (~a)~%" ,count-total)))))
+      `(let ((failures ',failures))
+         (if failures
+           (progn
+             (format t "tests failed!~%")
+               (loop for (test expected actual) in failures
+                 do (format t "expected: ~a => ~a, actual: ~a~%"
+                      test expected actual))
+               (format t "total failed tests: ~a/~a~%" 
+                 ,count-failed 
+                 ,count-total
+                 failures))
+           (format t "all tests passed! (~a)~%" ,count-total))))))
