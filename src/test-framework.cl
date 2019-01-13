@@ -12,7 +12,7 @@
     count-failed)"
   (if tests
     (let* ((test     (caar tests))
-           (expected (cadar tests))
+           (expected (eval (cadar tests)))
            (actual   (eval test))
            (passedp (equal expected actual)))
       (if passedp
