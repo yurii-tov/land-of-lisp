@@ -40,7 +40,7 @@
            (progn
              (format t "tests failed!~%")
                (loop for (test expected actual) in failures
-                 do (format t "expected: ~a => ~a, actual: ~a~%"
+                 do (format t "expected: ~s => ~s, actual: ~s~%"
                       test expected actual))
                (format t "total failed tests: ~a/~a~%" 
                  ,count-failed 
