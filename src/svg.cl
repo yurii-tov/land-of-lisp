@@ -35,6 +35,12 @@
 (defmacro body (&body body)
   `(tag body ,@body))
 
+(defmacro write-svg (out-file &body svg)
+  `(with-open-file 
+     (*standard-output* ,out-file 
+      :direction :output)
+     (svg ,@svg)))
+
 ; =======
 ; svg DSL
 ; =======
@@ -59,3 +65,32 @@
                cy (cdr center)
                r radius
                style (svg-style color))))
+
+(defun polygon (points color)
+  (tag (polygon 
+        points (format nil "~{~a,~a ~}"
+                 (mapcan (lambda (tp) (list (car tp) (cdr tp)))
+                   points))
+        style (svg-style color))))
+
+(defun random-walk (value length)
+  (unless (zerop length)
+    (cons value
+      (random-walk
+        (if (zerop (random 2))
+          (1- value)
+          (1+ value))
+        (1- length)))))
+
+(defun chart-example ()
+  (write-svg
+    "chart.svg"
+    (loop repeat 10
+      do (polygon 
+           (append 
+             '((0 . 200))
+              (loop for x
+                    for y in (random-walk 100 400)
+                    collect (cons x y))
+              '((400 . 200)))
+           (loop repeat 3 collect (random 256))))))
