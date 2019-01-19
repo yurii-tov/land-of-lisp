@@ -1,0 +1,10 @@
+(defmacro lazy (&body body)
+  (let ((value (gensym))
+        (forced (gensym)))
+    `(let ((,value nil)
+           (,forced nil))
+       (lambda ()
+         (unless ,forced
+           (progn (setf ,value (progn ,@body))
+                  (setf ,forced t)))
+         ,value))))
