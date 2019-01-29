@@ -62,8 +62,6 @@
                      (header (get-header stream))
                      (params (append (cdr url)
                                (get-content-params stream header))))
-                (format t "request~%url:~8t~a~&path:~8t~a~&header:~8t~a~&params:~8t~a~&"
-                  url path header params)
                 (let ((*standard-output* stream))
                   (funcall request-handler path header params)))))))
       (socket-server-close socket))))
