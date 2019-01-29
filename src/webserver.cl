@@ -66,8 +66,8 @@
                   (funcall request-handler path header params)))))))
       (socket-server-close socket))))
 
-(defun response-200 (body)
-  (format t "HTTP/1.1 200 OK~2%~a" body))
+(defun response-200 ()
+  (format t "HTTP/1.1 200 OK~2%"))
 
 (defun response-404 ()
   (format t "HTTP/1.1 404 Not Found~2%~a"
@@ -76,8 +76,8 @@
 (defun hello-request-handler (path header params)
   (if (equal path "greeting")
     (let ((name (assoc 'name params)))
-      (response-200
-        (if (not name)
-          "<html><form>What is your name?<input name='name'/></form></html>"
-          (format nil "<html>Nice to meet you, ~a!</html>" (cdr name)))))
+      (response-200)
+      (if (not name)
+          (format t "<html><form>What is your name?<input name='name'/></form></html>")
+          (format t "<html>Nice to meet you, ~a!</html>" (cdr name))))
     (response-404)))
