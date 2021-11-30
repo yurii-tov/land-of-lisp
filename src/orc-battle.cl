@@ -11,7 +11,7 @@
 (defun orc-battle (&key (player-health 30)
                      (player-agility 30)
                      (player-strength 30)
-                     (monster-num 12))
+                     (monster-num 10))
   (let ((*player-health* player-health)
         (*player-agility* player-agility)
         (*player-strength* player-strength)
