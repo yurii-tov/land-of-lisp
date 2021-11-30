@@ -37,7 +37,7 @@
         (player-attack)))
     (fresh-line)
     (loop for m across *monsters*
-          unless (player-dead)
+          until (player-dead)
             do (or (monster-dead m)
                    (monster-attack m)))
     (game-loop)))
