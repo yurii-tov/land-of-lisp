@@ -1,12 +1,17 @@
 (defparameter *player-health* nil)
 
+
 (defparameter *player-agility* nil)
+
 
 (defparameter *player-strength* nil)
 
+
 (defparameter *monsters* nil)
 
+
 (defparameter *monster-builders* nil)
+
 
 (defun orc-battle (&key (player-health 30)
                      (player-agility 30)
@@ -22,6 +27,7 @@
     (when (monsters-dead)
       (format t "Congratulations! You have vanquished all of your foes.~%"))))
 
+
 (defun game-loop ()
   (unless (or (player-dead) (monsters-dead))
     (show-player)
@@ -32,16 +38,19 @@
     (fresh-line)
     (loop for m across *monsters*
           unless (player-dead)
-          do (or (monster-dead m)
-                 (monster-attack m)))
+            do (or (monster-dead m)
+                   (monster-attack m)))
     (game-loop)))
+
 
 ;; ===========================
 ;; Player management functions
 ;; ===========================
 
+
 (defun player-dead ()
   (<= *player-health* 0))
+
 
 (defun show-player ()
   (format t
@@ -49,6 +58,7 @@
           *player-health*
           *player-agility*
           *player-strength*))
+
 
 (defun player-attack ()
   (fresh-line)
@@ -68,13 +78,16 @@
        (unless (monsters-dead)
          (monster-hit (random-monster) 1))))))
 
+
 (defun randval (n)
   (1+ (random (max 1 n))))
+
 
 (defun random-monster ()
   (let ((m (aref *monsters* (random (length *monsters*)))))
     (if (monster-dead m)
         (random-monster) m)))
+
 
 (defun pick-monster ()
   (fresh-line)
@@ -92,9 +105,11 @@
                 (pick-monster))
               m)))))
 
+
 ;; ============================
 ;; Monster management functions
 ;; ============================
+
 
 (defun make-monsters (monster-num)
   (map 'vector
@@ -104,11 +119,14 @@
                *monster-builders*)))
        (make-array monster-num)))
 
+
 (defun monster-dead (m)
   (<= (monster-health m) 0))
 
+
 (defun monsters-dead ()
   (every #'monster-dead *monsters*))
+
 
 (defun show-monsters ()
   (fresh-line)
@@ -125,12 +143,15 @@
                  (monster-show m))))
          *monsters*)))
 
+
 ;; ========
 ;; Monsters
 ;; ========
 
+
 (defstruct monster
   (health (randval 10)))
+
 
 (defmethod monster-hit (m x)
   (decf (monster-health m) x)
@@ -139,42 +160,55 @@
       (format t "You hit the ~A, knocking off ~A health points! "
               (type-of m) x)))
 
+
 (defmethod monster-show (m)
   (format t "A fierce ~A" (type-of m)))
 
+
 (defmethod monster-attack (m))
 
+
 ;; orc
+
 
 (defstruct (orc (:include monster))
   (club-level (randval 8)))
 
+
 (push #'make-orc *monster-builders*)
+
 
 (defmethod monster-show ((m orc))
   (format t "A wicked orc with a level ~A club"
           (orc-club-level m)))
+
 
 (defmethod monster-attack ((m orc))
   (let ((x (randval (orc-club-level m))))
     (decf *player-health* x)
     (format t "An orc swings his club at you and knocks off ~A of your health points! " x)))
 
+
 ;; hydra
+
 
 (defstruct (hydra (:include monster)))
 
+
 (push #'make-hydra *monster-builders*)
+
 
 (defmethod monster-show ((m hydra))
   (format t "A malicious hydra with ~A heads"
           (monster-health m)))
+
 
 (defmethod monster-hit ((m hydra) x)
   (decf (monster-health m) x)
   (if (monster-dead m)
       (format t "The corpse of fully decapitated and decapacitated hydra falls to the floor! ")
       (format t "You lop off ~A of the hydra's heads! " x)))
+
 
 (defmethod monster-attack ((m hydra))
   (let ((x (randval (ash (monster-health m) -1))))
@@ -184,14 +218,18 @@
             "A hydra attacks you with ~A of its heads! It also grows back one more head! "
             x)))
 
-;; monsters which steal agility
+
+;; monsters who steals agility
+
 
 (defstruct (steals-agility (:include monster))
   (taken 0))
 
+
 (defmethod steal-agility ((m steals-agility) x)
   (decf *player-agility* x)
   (incf (steals-agility-taken m) x))
+
 
 (defmethod monster-hit :after ((m steals-agility) x)
   (when (monster-dead m)
@@ -201,16 +239,21 @@
         (setf (steals-agility-taken m) 0)
         (format t "You get back stolen ~a agility points) " a)))))
 
-;; slime mold
+
+;;;; slime mold
+
 
 (defstruct (slime-mold (:include steals-agility))
   (slimeness (randval 5)))
 
+
 (push #'make-slime-mold *monster-builders*)
+
 
 (defmethod monster-show ((m slime-mold))
   (format t "A slime mold with a slimeness of ~A"
           (slime-mold-slimeness m)))
+
 
 (defmethod monster-attack ((m slime-mold))
   (let ((x (randval (slime-mold-slimeness m))))
@@ -222,11 +265,15 @@
       (decf *player-health*)
       (format t " It also squirts in your face, taking away a health point! "))))
 
+
 ;; cunning brigand
+
 
 (defstruct (brigand (:include steals-agility)))
 
+
 (push #'make-brigand *monster-builders*)
+
 
 (defmethod monster-attack ((m brigand))
   (let ((x (max *player-health*
@@ -243,9 +290,11 @@
        (princ "A brigand cuts your arm with his whip, taking off 2 strength points! ")
        (decf *player-strength* 2)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;; cli entry point ;;
 ;;;;;;;;;;;;;;;;;;;;;
+
 
 (defun orc-battle-cli ()
   (let ((args (cdr *posix-argv*)))
@@ -270,6 +319,7 @@
                                                     :test #'equal)
                                              (cadr xs))))))
           (apply #'orc-battle game-args)))))
+
 
 ;;;;;;;;;;;;;;;;;
 ;; compilation ;;
