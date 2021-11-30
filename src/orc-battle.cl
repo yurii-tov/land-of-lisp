@@ -270,3 +270,13 @@
                                                     :test #'equal)
                                              (cadr xs))))))
           (apply #'orc-battle game-args)))))
+
+;;;;;;;;;;;;;;;;;
+;; compilation ;;
+;;;;;;;;;;;;;;;;;
+
+
+(defun compile-orc-battle ()
+  (save-lisp-and-die "monster-battle.exe"
+                     :executable t
+                     :toplevel #'orc-battle-cli))
