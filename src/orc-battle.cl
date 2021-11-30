@@ -30,10 +30,9 @@
         (show-monsters)
         (player-attack)))
     (fresh-line)
-    (map 'list
-         (lambda (m)
-           (or (monster-dead m) (monster-attack m)))
-         *monsters*)
+    (loop for m across *monsters*
+          do (or (monster-dead m)
+                 (monster-attack m)))
     (game-loop)))
 
 ;; ===========================
@@ -158,7 +157,7 @@
 (defmethod monster-attack ((m orc))
   (let ((x (randval (orc-club-level m))))
     (decf *player-health* x)
-    (format t "An orc swings his club at you and knocks off ~A of your health points " x)))
+    (format t "An orc swings his club at you and knocks off ~A of your health points! " x)))
 
 ;; hydra
 
