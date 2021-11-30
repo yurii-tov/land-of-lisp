@@ -298,8 +298,10 @@
 
 (defun orc-battle-cli ()
   (let ((args (cdr *posix-argv*)))
-    (if (or (not args) (oddp (length args)))
+    (if (or (member "-h" args :test #'equal)
+            (oddp (length args)))
         (format t "Parameters:
+[-h] - Show help and exit
 [-monsters <count of monsters to fight>]
 [-health <your health>]
 [-agility <your agility>]
