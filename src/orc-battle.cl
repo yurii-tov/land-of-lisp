@@ -45,7 +45,7 @@
 
 (defun show-player ()
   (format t
-          "~%You are a valiant knight wint a health of ~A, an agility of ~A, and a strength of ~A~%"
+          "~%You are a valiant knight with a health of ~A, an agility of ~A, and a strength of ~A~%"
           *player-health*
           *player-agility*
           *player-strength*))
